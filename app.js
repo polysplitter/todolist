@@ -1,4 +1,5 @@
 const express = require('express')
+const date = require(__dirname + '/date')
 const app = express()
 let items = []
 let workItems = []
@@ -8,16 +9,7 @@ app.use(express.static('public'))
 app.set('view engine', 'ejs')
 
 app.get('/', (req, res, next) => {
-    let today = new Date()
-
-    let options = {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long'
-    }
-
-    let day = today.toLocaleDateString('en-US', options)
-
+    let day = date()
     res.render('list', { listTitle: day , newItems: items })
 })
 
