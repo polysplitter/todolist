@@ -1,11 +1,14 @@
 const express = require('express')
 const app = express()
+let items = []
 
 app.use(express.urlencoded({ extended: true }))
+app.use(express.static('public'))
 app.set('view engine', 'ejs')
 
 app.get('/', (req, res, next) => {
     let today = new Date()
+
     let options = {
         weekday: 'long',
         day: 'numeric',
@@ -14,12 +17,12 @@ app.get('/', (req, res, next) => {
 
     let day = today.toLocaleDateString('en-US', options)
 
-    res.render('list', { kindOfDay: day })
+    res.render('list', { kindOfDay: day , newItems: items })
 })
 
 app.post('/', (req, res, next) => {
-    let item = req.body.newItem
-    console.log(item)
+    item = req.body.newItem
+    items.push(item)
     res.redirect('/')
 })
 
