@@ -1,15 +1,17 @@
 const express = require('express')
 const date = require(__dirname + '/date')
 const app = express()
-let items = []
-let workItems = []
+
+// you can push items to an const array, but you cannot reassign the array to a different array.
+const items = ['Buy Food', 'Cook Food', 'Eat Food']
+const workItems = []
 
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static('public'))
 app.set('view engine', 'ejs')
 
 app.get('/', (req, res, next) => {
-    let day = date()
+    let day = date.getDate()
     res.render('list', { listTitle: day , newItems: items })
 })
 
