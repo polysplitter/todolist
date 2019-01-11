@@ -49,14 +49,27 @@ app.get('/', (req, res, next) => {
 })
 
 app.post('/', (req, res, next) => {
-    let item = req.body.newItem
-    if(req.body.list === 'Work') {
-        workItems.push(item)
-        res.redirect('/work')
-    } else {
-        items.push(item)
-        res.redirect('/')
-    }
+    let itemName = req.body.newItem
+
+    const item = new Item({
+        name: itemName
+    })
+
+    item.save()
+    res.redirect('/')
+})
+
+app.post('/delete', (req, res, next) => {
+    const checkedItemId = req.body.checkbox
+
+    Item.findByIdAndRemove(checkedItemId, (err) => {
+        if(err) {
+            console.log(err)
+        } else {
+            console.log(`successfully removed item ${checkedItemId}`)
+            res.redirect('/')
+        }
+    })
 })
 
 app.get('/work', (req, res, next) => {
