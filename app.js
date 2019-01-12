@@ -29,8 +29,14 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3]
 
+const listSchema = {
+    name: String,
+    items: [itemsSchema]
+}
+
+const List = mongoose.model('List', listSchema)
+
 app.get('/', (req, res, next) => {
-    let day = date.getDate()
 
     Item.find({}, (err, result) => {
         if(!Array.isArray(result) || !result.length) {
@@ -43,20 +49,31 @@ app.get('/', (req, res, next) => {
             })
             res.redirect('/')
         } else {
-            res.render('list', { listTitle: day , newItems: result })
+            res.render('list', { listTitle: 'Today' , newItems: result })
         }
     })
 })
 
 app.post('/', (req, res, next) => {
     let itemName = req.body.newItem
+    let listName = req.body.list;
 
     const item = new Item({
         name: itemName
     })
 
-    item.save()
-    res.redirect('/')
+    if(listName === 'Today') {
+        item.save(() => {
+            res.redirect('/')
+        })
+    } else {
+        List.findOne({name:listName}, (err, foundList) => {
+            foundList.items.push(item)
+            foundList.save(() => {
+                res.redirect(`/${listName}`)
+            })
+        })
+    }
 })
 
 app.post('/delete', (req, res, next) => {
@@ -72,14 +89,27 @@ app.post('/delete', (req, res, next) => {
     })
 })
 
-app.get('/work', (req, res, next) => {
-    res.render('list', { listTitle: 'Work List', newItems: workItems})
-})
+app.get('/:customListName', (req, res, next) => {
+    const customListName = req.params.customListName
 
-app.post('/work', (req, res, next) => {
-    let item = req.body.newItem
-    workItems.push(item)
-    res.redirect('/work')
+    List.findOne({name: customListName}, (err, foundList) => {
+        if(!err) {
+            if(!foundList) {
+                // Create a new list
+                const list = new List({
+                    name: customListName,
+                    items: defaultItems
+                })
+
+                list.save(() => {
+                    res.redirect(`/${customListName}`)
+                })
+            } else {
+                // Show an existing list
+                res.render('list', {listTitle: foundList.name, newItems: foundList.items})
+            }
+        }
+    })
 })
 
 app.get('/about', (req, res, next) => {
