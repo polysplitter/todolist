@@ -1,6 +1,7 @@
 const express = require('express')
 const date = require(__dirname + '/date')
 const mongoose = require('mongoose')
+const _ = require('lodash')
 const app = express()
 
 app.use(express.urlencoded({ extended: true }))
@@ -56,7 +57,7 @@ app.get('/', (req, res, next) => {
 
 app.post('/', (req, res, next) => {
     let itemName = req.body.newItem
-    let listName = req.body.list;
+    let listName = req.body.list
 
     const item = new Item({
         name: itemName
@@ -78,19 +79,28 @@ app.post('/', (req, res, next) => {
 
 app.post('/delete', (req, res, next) => {
     const checkedItemId = req.body.checkbox
+    const listName = req.body.listName
 
-    Item.findByIdAndRemove(checkedItemId, (err) => {
-        if(err) {
-            console.log(err)
-        } else {
-            console.log(`successfully removed item ${checkedItemId}`)
-            res.redirect('/')
-        }
-    })
+    if(listName === 'Today') {
+        Item.findByIdAndRemove(checkedItemId, (err) => {
+            if(err) {
+                console.log(err)
+            } else {
+                console.log(`successfully removed item ${checkedItemId}`)
+                res.redirect('/')
+            }
+        })
+    } else {
+        List.findOneAndUpdate({ name: listName }, { $pull: { items: {_id: checkedItemId}}}, (err, foundList) => {
+            if(!err) {
+                res.redirect(`/${listName}`)
+            }
+        })
+    }
 })
 
 app.get('/:customListName', (req, res, next) => {
-    const customListName = req.params.customListName
+    const customListName = _.capitalize(req.params.customListName)
 
     List.findOne({name: customListName}, (err, foundList) => {
         if(!err) {
